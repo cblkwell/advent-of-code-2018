@@ -89,7 +89,17 @@ def sleepiest_guard(guard_log):
             sleepiest = [ guard, sum(guard_log[guard]) ]
     
     return sleepiest
+
+def sleepiest_minute(guard_log):
+    sleepiest = [ "", 0 , 0 ]
+    # For each guard in our log...
+    for guard in guard_log:
+        # If this guard's max is higher than the current max...
+        if max(guard_log[guard]) > sleepiest[1]:
+            # They're the sleepiest! Record the minute of their max.
+            sleepiest = [ guard, max(guard_log[guard]), guard_log[guard].index(max(guard_log[guard])) ]
         
+    return sleepiest
 
 guard_log = []
     
@@ -100,6 +110,8 @@ with open(inputfile) as f:
 guard_record = process_log(sorted(guard_log))
 
 sleeper = sleepiest_guard(guard_record)[0]
+also_sleeps = sleepiest_minute(guard_record)
 
 print(f"The sleepiest guard is {sleeper}!")
 print(f"Their sleepiest minute was {guard_record[sleeper].index(max(guard_record[sleeper]))}.")
+print(f"However, {also_sleeps[0]} was usually asleep at minute {also_sleeps[2]}.")
