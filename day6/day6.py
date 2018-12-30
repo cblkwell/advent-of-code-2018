@@ -95,6 +95,23 @@ def find_largest(coord_list, grid):
             max_area = len(tally[key])
 
     return largest_pt, max_area
+
+def find_region(coord_list, grid):
+    left_bound, right_bound, bottom_bound, top_bound = grid
+    region_size = 0
+
+    for y in range(bottom_bound, top_bound + 1):
+        for x in range(left_bound, right_bound + 1):
+            total_dist = 0
+            point = (x,y)
+            for coord in coord_list:
+                total_dist = total_dist + man_dist(coord, point) 
+            
+            if total_dist < 10000:
+                region_size += 1
+
+    return region_size
+    
             
 coords = []
 
@@ -106,3 +123,4 @@ with open(inputfile) as file:
 
 grid = define_grid(coords)
 print(find_largest(coords, grid))
+print(find_region(coords, grid))
