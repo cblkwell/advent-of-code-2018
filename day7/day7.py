@@ -9,13 +9,12 @@ def parse_instruct(order):
 
     return step, prereq
 
-
 def find_candidates(instructs, done_steps):
     '''Given a list of instructions and done steps, find candidates.'''
     candidates = []
 
     for key, value in instructs.items():
-        if value.issubset(done_steps):
+        if value.issubset(done_steps) and key not in done_steps:
             candidates.append(key)
     
     candidates.sort() 
@@ -36,39 +35,64 @@ def simple_execution(instruct_list):
 
     return "".join(instruct_order)
 
+class Elf:
+    def __init__(self):
+        self.job = None
+        self.finish_time = 0
+        self.busy = False
 
-def multi_worker(instruct_list, workers=2, skew=0)
-    '''Execute the instructions as specified for part 2'''
-    done_steps = set()
+    def assign_job(self, job, finish_time):
+        global current_time
+        self.job = job
+        self.finish_time = finish_time
+        self.busy = True
+
+    def finish_job(self):
+        self.job = None
+        self.finish_time = 0
+        self.busy = False
+
+def full_process(instruct_list, workers, skew):
+    '''A unified process for working through a list of instructions.'''
     num_steps = len(instruct_list.keys())
-    time = 0
-    work_queue = {}
-
-    for worker in range(workers):
-        work_queue[worker] = (None, 0)
+    current_time = 0
+    done_steps = set()
     
+    # Build a list of workers
+    elves = [Elf()] * workers   
+
     while len(done_steps) < num_steps:
         free_workers = []
-        for worker in work_queue.keys():
-            if work_queue[worker][0] != None and work_queue[worker][1] == time:
-                done_steps.add(work_queue[worker][0])
-                del instruct_list[work_queue[worker][0]]
-                
-            if work_queue[worker][1] <= time:
-                free_workers.append(worker)
+        for elf in elves:
+            if elf.finish_time == current_time and elf.job != None:
+                print(f"{current_time}: An elf finished job {elf.job}")
+                print(f"{current_time}: Adding {elf.job} to done_steps")
+                done_steps.add(elf.job)
+                print(f"{current_time}: done_steps is {done_steps}")
+                elf.finish_job()
+                free_workers.append(elf)
+            elif elf.busy == False:
+                free_workers.append(elf)
 
-        if len(free_workers) = 0:
-            time += 1
+        if len(free_workers) == 0:
+            print(f"{current_time}: All workers busy")
+            current_time += 1
         else:
             candidates = find_candidates(instruct_list, done_steps)
-        
-            while len(candidates) > 0 and len(free_workers) > 0:
-                job = candidates.pop(0)
-                job_time = ord(job) - 64
-                assignee = free_workers.pop()
-                work_queue[assignee] = (job, job_time + skew + time)
-        
+    
+            while len(free_workers) > 0 and len(candidates) > 0:
+                print(f"{current_time}: There's {len(free_workers)} free workers")
+                worker_elf = free_workers.pop()
+                new_job = candidates.pop(0)
+                job_done = ord(new_job) - 64 + skew + current_time
+                worker_elf.assign_job(new_job, job_done)
+                print(f"{current_time}: Assigned elf {worker_elf} job {new_job} to finish at {job_done}")
 
+            current_time += 1
+    
+    step_order = "".join(done_steps)
+    return step_order, current_time
+    
 instructions = {}
 
 with open(inputfile) as file:
@@ -83,4 +107,8 @@ with open(inputfile) as file:
         if prereq not in instructions.keys():
             instructions[prereq] = set()
 
-print(simple_execution(instructions))
+with open(inputfile) as file:
+    for line in file:
+        step, prereq = parse_instruct(line)
+print(instructions)
+print(full_process(instructions, 2, 0))
