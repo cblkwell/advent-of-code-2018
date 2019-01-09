@@ -57,9 +57,12 @@ def full_process(instruct_list, workers, skew):
     num_steps = len(instruct_list.keys())
     current_time = 0
     done_steps = set()
+    assigned_steps = set()
+    elves = []
     
     # Build a list of workers
-    elves = [Elf()] * workers   
+    for i in range(1, workers + 1):
+        elves.append(Elf())  
 
     while len(done_steps) < num_steps:
         free_workers = []
@@ -79,16 +82,24 @@ def full_process(instruct_list, workers, skew):
             current_time += 1
         else:
             candidates = find_candidates(instruct_list, done_steps)
+            for current_job in assigned_steps:
+                if current_job in candidates:
+                    candidates.remove(current_job)
     
             while len(free_workers) > 0 and len(candidates) > 0:
                 print(f"{current_time}: There's {len(free_workers)} free workers")
+                print(f"{current_time}: The candidates are {candidates}")
                 worker_elf = free_workers.pop()
                 new_job = candidates.pop(0)
+                print(f"{current_time}: Popped off; candidates is {candidates}")
                 job_done = ord(new_job) - 64 + skew + current_time
                 worker_elf.assign_job(new_job, job_done)
+                assigned_steps.add(new_job)
+                
                 print(f"{current_time}: Assigned elf {worker_elf} job {new_job} to finish at {job_done}")
 
-            current_time += 1
+            if len(done_steps) < num_steps:
+                current_time += 1
     
     step_order = "".join(done_steps)
     return step_order, current_time
@@ -111,4 +122,4 @@ with open(inputfile) as file:
     for line in file:
         step, prereq = parse_instruct(line)
 print(instructions)
-print(full_process(instructions, 2, 0))
+print(full_process(instructions, 5, 60))
