@@ -131,4 +131,4 @@ while playing_marble =< marbles:
     else:
         player += 1
 
-describe_game(circle, current_marble, scores, playing_)marble)
+describe_game(circle, current_marble, scores, playing_marble)
