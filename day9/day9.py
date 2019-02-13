@@ -4,12 +4,13 @@ players, marbles = int(sys.argv[1]), int(sys.argv[2])
 
 # This is just a method to describe the current state of the game.
 def describe_game(circle, cur_marble, scores, played_marble):
-    print(f'After playing marble {played_marble}, the current state of the game is:')
-    print(circle)
+    print(f'After playing marble {played_marble}:')
+    print('-------------------------------------')
     print("The current marble is:")
     print(cur_marble)
     print("Current scores are:")
     print(scores)
+    print(f"The high score is {max(scores.values())}.")
 
 
 # This is the function which does a normal marble placement, putting
@@ -45,18 +46,18 @@ def scoring_placement(circle, cur_marble):
     # to work from the end of the list to figure things out.
     if cur_position < 7:
         offset = 7 - cur_position
-        cur_marble = circle[len(circle) - offset - 1]
+        cur_marble = circle[len(circle) - offset + 1]
         bonus_score = circle.pop(len(circle) - offset)
         
     # If our current position is exactly seven, we have an annoying
     # special case.
     elif cur_position == 7:
-        cur_marble = circle[len(circle) - 1]
+        cur_marble = circle[len(circle) + 1]
         bonus_score = circle.pop(0)
     # If the current marble's index is >= 8, the next
     # step is pretty easy.
     else:
-        cur_marble = circle[cur_position - 8]
+        cur_marble = circle[cur_position - 6]
         bonus_score = circle.pop(cur_position - 7)
 
     # Now we return the circle, the current marble, and the bonus
@@ -117,8 +118,6 @@ while playing_marble <= marbles:
     # their score.
     else:
         scores[player] = score
-
-    describe_game(circle, current_marble, scores, playing_marble)
 
     # Now we increment the playing_marble counter.
     playing_marble += 1
