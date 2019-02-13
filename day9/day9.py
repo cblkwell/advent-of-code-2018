@@ -1,13 +1,15 @@
 import sys
+from collections import deque
 
 players, marbles = int(sys.argv[1]), int(sys.argv[2])
 
 # This is just a method to describe the current state of the game.
-def describe_game(circle, cur_marble, scores, played_marble):
+def describe_game(circle, scores, played_marble):
     print(f'After playing marble {played_marble}:')
     print('-------------------------------------')
+    # print(circle)
     print("The current marble is:")
-    print(cur_marble)
+    print(circle[0])
     print("Current scores are:")
     print(scores)
     print(f"The high score is {max(scores.values())}.")
@@ -16,83 +18,60 @@ def describe_game(circle, cur_marble, scores, played_marble):
 # This is the function which does a normal marble placement, putting
 # a marble two slots clockwise. We take three inputs; the current state
 # of the circle, the current marble, and the new marble we're adding.
-def normal_placement(circle, cur_marble, new_marble):
-    
-    cur_position = circle.index(cur_marble)
-    # Let's check to see if this is the easy case, where we're not
-    # going to loop over the end of the list. The only time this is
-    # the case is where our current position is at the end of the
-    # list (if we're one short of that, we just append).
-    if cur_position != len(circle) - 1:
-        circle.insert((cur_position + 2), new_marble)
-    # If we were at the last position in the list, then we insert
-    # the new marble at position 1 (because that's "two spaces
-    # clockwise" from the end of the list).
-    else:
-        circle.insert(1, new_marble)
+def normal_placement(circle, new_marble):
 
-    # Return the new circle, and the new marble, which will become
-    # the current marble.
-    return circle, new_marble
+    # If placement is normal, this should be straightforward; thanks
+    # to using a deque, we don't need to do a bunch of logic to
+    # figure out where we are in the queue. We can just rotate and
+    # append, easy peasy.
+    circle.rotate(-2)
+    circle.appendleft(new_marble)
+    
+    return circle
 
 
 # This is a function which handles point-scoring placement. Here, we
 # don't need the new marble because it's not going to be used (except
 # to calculate points, and we do that in the play_marble function.
-def scoring_placement(circle, cur_marble):
+def scoring_placement(circle):
 
-    cur_position = circle.index(cur_marble)
-    # If the current marble's index is less than seven, we just need
-    # to work from the end of the list to figure things out.
-    if cur_position < 7:
-        offset = 7 - cur_position
-        cur_marble = circle[len(circle) - offset + 1]
-        bonus_score = circle.pop(len(circle) - offset)
-        
-    # If our current position is exactly seven, we have an annoying
-    # special case.
-    elif cur_position == 7:
-        cur_marble = circle[len(circle) + 1]
-        bonus_score = circle.pop(0)
-    # If the current marble's index is >= 8, the next
-    # step is pretty easy.
-    else:
-        cur_marble = circle[cur_position - 6]
-        bonus_score = circle.pop(cur_position - 7)
+    # Using deque, we can simplify a ton of this logic. We rotate
+    # the deque seven steps "counterclockwise" and then pop off the
+    # last value.
+    circle.rotate(7)
+    bonus_score = circle.popleft()
 
-    # Now we return the circle, the current marble, and the bonus
-    # score from removing the other marble.
-    return circle, cur_marble, bonus_score
+    return circle, bonus_score
 
 
 # We need a function to play a marble; the inputs are the circle,
 # the current marble, and the new marble.
-def play_marble(circle, cur_marble, new_marble):
+def play_marble(circle, new_marble):
     # Score is zero for this play to start with.
     score = 0
 
     # If the marble is divisible by 23, this is a scoring
     # placement.
     if new_marble % 23 == 0:
-        circle, cur_marble, bonus_score = scoring_placement(circle, cur_marble)
+        circle, bonus_score = scoring_placement(circle)
         score = new_marble + bonus_score
     # If not, then this isn't a scoring placement, so score will remain
     # zero.
     else:
-        circle, cur_marble = normal_placement(circle, cur_marble, new_marble)
+        circle = normal_placement(circle, new_marble)
 
-    return circle, cur_marble, score
+    return circle, score
 
 
 # GAME BEGINS HERE
 
-# Every marble game has a list of the marbles in it. It starts
-# empty. I'm tempted to create a new object with methods to
-# support a "circular list" but I think this is probably overkill
-# at least for part one.
-circle = [0]
-# We also have a variable to keep track of the current marble.
-current_marble = 0
+# So, part two makes using a simple list pretty untenable (it runs
+# ~forever~). Thanks to github.com/mosephine I learned about the
+# deque class from the collections library, which works similarly
+# but is much more efficient for what we want to do. We can also say
+# that the current marble will always be at the "start" of the circle,
+# so we don't need to keep track of it anymore.
+circle = deque([0])
 # We also nsomething to keep track of scores; a dict will work.
 scores = {}
 # We'll also need something to keep track of the current player.
@@ -107,7 +86,7 @@ while playing_marble <= marbles:
 
     # So, we play the playing_marble and get back a new game state and
     # the score of the play.
-    circle, current_marble, score = play_marble(circle, current_marble, playing_marble)
+    circle, score = play_marble(circle, playing_marble)
     
     # We need to do some special casing because at first, the scoring
     # dict will be empty and we'll need to populate it. If the player
@@ -118,6 +97,8 @@ while playing_marble <= marbles:
     # their score.
     else:
         scores[player] = score
+
+    # describe_game(circle, scores, playing_marble)
 
     # Now we increment the playing_marble counter.
     playing_marble += 1
@@ -130,4 +111,4 @@ while playing_marble <= marbles:
     else:
         player += 1
 
-describe_game(circle, current_marble, scores, playing_marble)
+describe_game(circle, scores, playing_marble)
