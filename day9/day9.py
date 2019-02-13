@@ -102,7 +102,7 @@ playing_marble = 1
 
 # The game starts with the "zeroth" marble already played, since this
 # needs to be done regardless of how many marbles or players there are.
-while playing_marble =< marbles:
+while playing_marble <= marbles:
 
     # So, we play the playing_marble and get back a new game state and
     # the score of the play.
@@ -111,7 +111,7 @@ while playing_marble =< marbles:
     # We need to do some special casing because at first, the scoring
     # dict will be empty and we'll need to populate it. If the player
     # already has a score, then we have the easy case.
-    if scores[player]:
+    if player in scores:
         scores[player] += score
     # If the player *doesn't* have a score yet, then we need to establish
     # their score.
